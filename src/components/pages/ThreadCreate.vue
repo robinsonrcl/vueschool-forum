@@ -1,5 +1,5 @@
 <template>
-  <div class="col-full push-top">
+  <div v-if="forum" class="col-full push-top">
     <h1>
       Create new thread in <i>{{ forum.name }}</i>
     </h1>
@@ -12,28 +12,35 @@
 <script>
 import ThreadEditor from '@/components/ThreadEditor.vue'
 import { findById } from '@/helpers'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'PageThreadCreate',
-  created () {},
+  // created () {},
+
   components: {
     ThreadEditor
   },
+
   props: {
     forumId: {
       type: String,
       required: true
     }
   },
+
   computed: {
     forum () {
       return findById(this.$store.state.forums, this.forumId)
     }
   },
+
   methods: {
+    ...mapActions(['fetchForum', 'createThread']),
+
     async save ({ title, text }) {
       // dispatch a vuex action
-      const thread = await this.$store.dispatch('createThread', {
+      const thread = await this.createThread({
         forumId: this.forum.id,
         title,
         text
@@ -43,6 +50,10 @@ export default {
     cancel () {
       this.$router.push({ name: 'Forum', params: { id: this.forum.id } })
     }
+  },
+
+  created () {
+    this.fetchForum({ id: this.forumId })
   }
 }
 </script>

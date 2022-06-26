@@ -19,6 +19,7 @@ module.exports = {
     'no-unused-vars': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'vue/no-deprecated-router-link-tag-prop': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    'vue/no-deprecated-router-link-tag-prop': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'space-before-function-paren': ['error', 'always']
   }
 }

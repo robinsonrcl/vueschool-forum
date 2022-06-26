@@ -6,7 +6,6 @@ import ThreadCreate from '@/components/pages/ThreadCreate.vue'
 import ThreadEdit from '@/components/ThreadEdit.vue'
 import NotFound from '@/components/pages/NotFound.vue'
 
-import sourceData from '@/data.json'
 import Forum from '@/components/pages/Forum.vue'
 import Category from '@/components/pages/Category.vue'
 import Profile from '@/components/pages/Profile.vue'
@@ -45,22 +44,22 @@ const routes = [
     path: '/thread/:id',
     name: 'ThreadShow',
     component: ThreadShow,
-    props: true,
-    beforeEnter: (to, from, next) => {
-      const threadExists = sourceData.threads.find(thread => thread.id === to.params.id)
+    props: true
+    // beforeEnter: (to, from, next) => {
+    //   const threadExists = sourceData.threads.find(thread => thread.id === to.params.id)
 
-      if (threadExists) {
-        return next()
-      } else {
-        next({
-          name: 'NotFound',
-          params: { pathMatch: to.path.substring(1).split('/') },
-          // preserve existing query and hash
-          query: to.query,
-          hash: to.hash
-        })
-      }
-    }
+    //   if (threadExists) {
+    //     return next()
+    //   } else {
+    //     next({
+    //       name: 'NotFound',
+    //       params: { pathMatch: to.path.substring(1).split('/') },
+    //       // preserve existing query and hash
+    //       query: to.query,
+    //       hash: to.hash
+    //     })
+    //   }
+    // }
   },
   {
     path: '/forum/:forumId/thread/create',

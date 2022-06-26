@@ -11,7 +11,7 @@
       </router-link>
     </h1>
     <p>
-      By <a href="#" class="link-unstyled">{{ thread.author?.name }}</a
+      By <a href="#" class="link-unstyled">{{ thread.author.name }}</a
       >, <AppDate :timestamp="thread.publishedAt" />
       <span
         style="float: right; margin-top: 2px"
@@ -30,8 +30,7 @@
 import PostList from '@/components/PostList.vue'
 import PostEditor from '@/components/PostEditor.vue'
 import AppDate from '../AppDate.vue'
-import firebase from 'firebase/app'
-import 'firebase/firestore'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'PageThreadShow',
@@ -65,54 +64,24 @@ export default {
   },
 
   methods: {
+    ...mapActions(['fetchThread', 'fetchUsers', 'fetchPosts', 'createPost']),
+
     addPost (eventData) {
       const post = {
         ...eventData.post,
         threadId: this.id
       }
 
-      this.$store.dispatch('createPost', post)
+      this.createPost(post)
     }
   },
 
-  created () {
-    firebase
-      .firestore()
-      .collection('threads')
-      .doc(this.id)
-      .onSnapshot((doc) => {
-        const thread = { ...doc.data(), id: doc.id }
-        this.$store.commit('setThread', { thread })
+  async created () {
+    const thread = await this.fetchThrea({ id: this.id })
 
-        firebase
-          .firestore()
-          .collection('users')
-          .doc(thread.userId)
-          .onSnapshot((doc) => {
-            const user = { ...doc.data(), id: doc.id }
-            this.$store.commit('setUser', { user })
-          })
-
-        thread.posts.forEach((postId) => {
-          firebase
-            .firestore()
-            .collection('posts')
-            .doc(postId)
-            .onSnapshot((doc) => {
-              const post = { ...doc.data(), id: doc.id }
-
-              firebase
-                .firestore()
-                .collection('users')
-                .doc(post.userId)
-                .onSnapshot((doc) => {
-                  const user = { ...doc.data(), id: doc.id }
-                  this.$store.commit('setUser', { user })
-                  this.$store.commit('setPost', { post })
-                })
-            })
-        })
-      })
+    const posts = await this.fetchPosts({ ids: thread.posts })
+    const users = posts.map(post => post.userId).concat(thread.userId)
+    this.fetchUsers({ ids: users })
   }
 }
 </script>

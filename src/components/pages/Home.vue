@@ -5,6 +5,7 @@
 
 <script>
 import CategoryList from '@/components/CategoryList.vue'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'PageHome',
@@ -17,15 +18,18 @@ export default {
       return this.$store.state.categories
     }
   },
-  beforeCreate () {
-    console.log('before create')
+
+  methods: {
+    ...mapActions(['fetchAllCategories', 'fetchForums'])
   },
-  created () {
-    console.log('created', this.categories)
-  },
-  beforeMount () {
-    console.log('beforeMount', this.categories)
+
+  async created () {
+    const categories = await this.fetchAllCategories()
+    const forumIds = categories.map(category => category.forums).flat()
+    this.fetchForums({ ids: forumIds })
+    console.log('before create', this.categories)
   }
+
 }
 </script>
 

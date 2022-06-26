@@ -35,6 +35,7 @@
 </template>
 
 <script>
+import { findById } from '@/helpers'
 export default {
   name: 'ThreadList',
   props: {
@@ -45,19 +46,21 @@ export default {
   },
   computed: {
     posts () {
-      return this.$store.state.posts
+      return this.$store.state.posts.items
     },
     users () {
-      return this.$store.state.users
+      return this.$store.state.users.items
     }
   },
   methods: {
     postById (postId) {
-      return this.posts.find(p => p.id === postId)
+      // return this.posts.find(p => p.id === postId)
+      return findById(this.posts, postId)
     },
 
     userById (userId) {
-      return this.users.find(u => u.id === userId)
+      return findById(this.users, userId) || {}
+      // this.users.find(u => u.id === userId)
     }
   }
 }
