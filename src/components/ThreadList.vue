@@ -7,7 +7,7 @@
       <div v-for="thread in threads" :key="thread.id" class="thread">
         <div>
           <p>
-            <router-link :to="{ name: 'ThreadShow', params: { id: thread.id }}">{{ thread.title }}</router-link>
+            <router-link :to="{name: 'ThreadShow', params: { id: thread.id }}">{{ thread.title }}</router-link>
           </p>
           <p class="text-faded text-xsmall">
             By <a href="#">{{ userById(thread.userId).name }}</a>, <AppDate :timestamp="thread.publishedAt" />.
@@ -25,7 +25,7 @@
             <p class="text-xsmall">
               <a href="#">{{ userById(thread.userId).name }}</a>
             </p>
-            <p class="text-xsmall text-faded"><AppDate :timestamp="thread.publishedAt" /></p>
+            <p class="text-xsmall text-faded"><AppDate: timestamp="thread.publishedAt" /></p>
           </div>
         </div>
       </div>
@@ -36,6 +36,7 @@
 
 <script>
 import { findById } from '@/helpers'
+
 export default {
   name: 'ThreadList',
   props: {
@@ -44,23 +45,21 @@ export default {
       required: true
     }
   },
-  computed: {
-    posts () {
-      return this.$store.state.posts.items
-    },
-    users () {
-      return this.$store.state.users.items
-    }
-  },
+  // computed: {
+  //   posts () {
+  //     return this.$store.state.posts.items
+  //   },
+  //   users () {
+  //     return this.$store.state.users.items
+  //   }
+  // },
   methods: {
-    postById (postId) {
-      // return this.posts.find(p => p.id === postId)
-      return findById(this.posts, postId)
-    },
+    // postById (postId) {
+    //   return findById(this.posts, postId)
+    // },
 
     userById (userId) {
       return findById(this.users, userId) || {}
-      // this.users.find(u => u.id === userId)
     }
   }
 }
