@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" style="width:100%">
     <div class="flex-grid">
       <div class="col-3 push-top">
 
@@ -14,7 +14,7 @@
           <a href="#">See only started threads?</a>
         </div>
         <hr />
-        <PostList :posts="user.Posts" />
+        <PostList :posts="user.posts" />
       </div>
     </div>
   </div>
@@ -24,24 +24,35 @@
 import PostList from '@/components/PostList.vue'
 import UserProfileCard from '@/components/UserProfileCard.vue'
 import UserProfileCardEditor from '@/components/UserProfileCardEditor.vue'
+import asyncDataStatus from '@/mixins/asyncDataStatus'
 
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'PageProfile',
+
   components: {
     PostList,
     UserProfileCard,
     UserProfileCardEditor
   },
+
+  mixins: [asyncDataStatus],
+
   props: {
     edit: {
       type: Boolean,
       default: false
     }
   },
+
   computed: {
-    ...mapGetters({ user: 'authUser' })
+    ...mapGetters('auth', { user: 'authUser' })
+  },
+
+  async created () {
+    await this.$store.dispatch('auth/fetchAuthUserPosts')
+    this.asyncDataStatus_fetched()
   }
 }
 </script>

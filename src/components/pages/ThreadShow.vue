@@ -1,8 +1,9 @@
 <template>
-  <div class="col-large push-top">
+  <div v-if="asyncDataStatus_ready" class="col-large push-top">
     <h1>
       {{ thread.title }}
       <router-link
+        v-if="thread.userId === authUser?.id"
         :to="{ name: 'ThreadEdit', id: this.id }"
         class="btn-green btn-small"
         tag="button"
@@ -11,7 +12,7 @@
       </router-link>
     </h1>
     <p>
-      By <a href="#" class="link-unstyled">{{ thread.author.name }}</a
+      By <a href="#" class="link-unstyled">{{ thread.author?.name }}</a
       >, <AppDate :timestamp="thread.publishedAt" />
       <span
         style="float: right; margin-top: 2px"
@@ -22,7 +23,11 @@
     </p>
     <PostList :posts="threadPosts" />
 
-    <PostEditor @save="addPost" />
+    <PostEditor v-if="authUser" @save="addPost" />
+    <div v-else class="text-center" style="margin-button: 50px;">
+      <router-link :to="{ name: 'SignIn', query: { redirectTo: $route.path}}">Sign In</router-link> or
+      <router-link :to="{ name: 'Register', query: { redirectTo: $route.path }}">Register</router-link> to reply.
+    </div>
   </div>
 </template>
 
@@ -30,16 +35,19 @@
 import PostList from '@/components/PostList.vue'
 import PostEditor from '@/components/PostEditor.vue'
 import AppDate from '../AppDate.vue'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
+import asyncDataStatus from '@/mixins/asyncDataStatus'
 
 export default {
-  name: 'PageThreadShow',
+  name: 'ThreadShow',
 
   components: {
     PostList,
     PostEditor,
     AppDate
   },
+
+  mixins: [asyncDataStatus],
 
   props: {
     id: {
@@ -49,22 +57,26 @@ export default {
   },
 
   computed: {
+    ...mapGetters('auth', ['authUser']),
+
     threads () {
-      return this.$store.state.threads
+      return this.$store.state.threads.items
     },
     posts () {
-      return this.$store.state.posts
+      return this.$store.state.posts.items
     },
     thread () {
-      return this.$store.getters.thread(this.id)
+      return this.$store.getters['threads/thread'](this.id)
     },
     threadPosts () {
-      return this.posts.filter((post) => post.threadId === this.id)
+      return this.posts.filter(post => post.threadId === this.id)
     }
   },
 
   methods: {
-    ...mapActions(['fetchThread', 'fetchUsers', 'fetchPosts', 'createPost']),
+    ...mapActions('threads', ['fetchThread']),
+    ...mapActions('users', ['fetchUsers']),
+    ...mapActions('posts', ['fetchPosts', 'createPost']),
 
     addPost (eventData) {
       const post = {
@@ -77,11 +89,12 @@ export default {
   },
 
   async created () {
-    const thread = await this.fetchThrea({ id: this.id })
+    const thread = await this.fetchThread({ id: this.id })
 
     const posts = await this.fetchPosts({ ids: thread.posts })
     const users = posts.map(post => post.userId).concat(thread.userId)
-    this.fetchUsers({ ids: users })
+    await this.fetchUsers({ ids: users })
+    this.asyncDataStatus_fetched()
   }
 }
 </script>

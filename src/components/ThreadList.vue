@@ -45,18 +45,18 @@ export default {
       required: true
     }
   },
-  // computed: {
-  //   posts () {
-  //     return this.$store.state.posts.items
-  //   },
-  //   users () {
-  //     return this.$store.state.users.items
-  //   }
-  // },
+  computed: {
+    posts () {
+      return this.$store.state.posts.items
+    },
+    users () {
+      return this.$store.state.users.items
+    }
+  },
   methods: {
-    // postById (postId) {
-    //   return findById(this.posts, postId)
-    // },
+    postById (postId) {
+      return findById(this.posts, postId)
+    },
 
     userById (userId) {
       return findById(this.users, userId) || {}
