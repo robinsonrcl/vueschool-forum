@@ -57,7 +57,7 @@ const routes = [
     props: true,
 
     async beforeEnter (to, from, next) {
-      await store.dispatch('threads/fetchThread', { id: to.params.id })
+      await store.dispatch('threads/fetchThread', { id: to.params.id, once: true })
 
       const threadExists = findById(store.state.threads.items, to.params.id)
 
@@ -133,6 +133,10 @@ const router = createRouter({
 
     return scroll
   }
+})
+
+router.afterEach(() => {
+  store.dispatch('clearItems', { modules: ['categories', 'forums', 'posts', 'threads'] })
 })
 
 router.beforeEach(async (to, from) => {

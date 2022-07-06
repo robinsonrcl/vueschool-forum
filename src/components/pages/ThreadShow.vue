@@ -14,12 +14,12 @@
     <p>
       By <a href="#" class="link-unstyled">{{ thread.author?.name }}</a
       >, <AppDate :timestamp="thread.publishedAt" />
-      <span
-        style="float: right; margin-top: 2px"
-        class="hide-mobile text-faded text-small"
-      >
-        {{ thread.repliesCount }} replies by {{ thread.contributorsCount }} contributor
-      </span>
+      <span style="float:right; margin-top: 2px;" class="hide-mobile text-faded text-small">
+         {{thread.repliesCount}}
+         {{thread.repliesCount === 1 ? 'reply' : 'replies'}}
+         by {{thread.contributorsCount}}
+         {{thread.contributorsCount === 1 ? 'contributor' : 'contributors'}}
+       </span>
     </p>
     <PostList :posts="threadPosts" />
 
@@ -37,6 +37,8 @@ import PostEditor from '@/components/PostEditor.vue'
 import AppDate from '../AppDate.vue'
 import { mapActions, mapGetters } from 'vuex'
 import asyncDataStatus from '@/mixins/asyncDataStatus'
+import useNotifications from '@/composables/useNotifications'
+import difference from 'lodash/difference'
 
 export default {
   name: 'ThreadShow',
@@ -45,6 +47,11 @@ export default {
     PostList,
     PostEditor,
     AppDate
+  },
+
+  setup () {
+    const { addNotification } = useNotifications()
+    return { addNotification }
   },
 
   mixins: [asyncDataStatus],
@@ -78,6 +85,18 @@ export default {
     ...mapActions('users', ['fetchUsers']),
     ...mapActions('posts', ['fetchPosts', 'createPost']),
 
+    async fetchPostsWithUsers (ids) {
+      const posts = await this.fetchPosts({
+        ids,
+        onSnapshot: ({ isLocal, previousItem }) => {
+          if (!this.asyncDataStatus_ready || isLocal || (previousItem?.edited && !previousItem?.edited?.at)) return
+          this.addNotification({ message: 'Thread recently updated', timeout: 5000 })
+        }
+      })
+      const users = posts.map(post => post.userId).concat(this.thread.userId)
+      await this.fetchUsers({ ids: users })
+    },
+
     addPost (eventData) {
       const post = {
         ...eventData.post,
@@ -89,11 +108,21 @@ export default {
   },
 
   async created () {
-    const thread = await this.fetchThread({ id: this.id })
+    const thread = await this.fetchThread({
+      id: this.id,
+      onSnapshot: async ({ isLocal, item, previousItem }) => {
+        if (!this.asyncDataStatus_ready || isLocal) return
+        const newPosts = difference(item.posts, previousItem.posts)
+        const hasNewPosts = newPosts.length > 0
+        if (hasNewPosts) {
+          await this.fetchPostsWithUsers(newPosts)
+        } else {
+          this.addNotification({ message: 'Thread recently updated', timeout: 5000 })
+        }
+      }
+    })
 
-    const posts = await this.fetchPosts({ ids: thread.posts })
-    const users = posts.map(post => post.userId).concat(thread.userId)
-    await this.fetchUsers({ ids: users })
+    await this.fetchPostsWithUsers(thread.posts)
     this.asyncDataStatus_fetched()
   }
 }

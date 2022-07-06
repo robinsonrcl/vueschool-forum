@@ -1,4 +1,5 @@
-import firebase from 'firebase/compat/app'
+import firebase from '@/helpers/firebase'
+import useNotifications from '@/composables/useNotifications'
 
 export default {
   namespaced: true,
@@ -15,12 +16,20 @@ export default {
   },
   actions: {
 
+    async updateEmail ({ state }, { email }) {
+      return firebase.auth().currentUser.updateEmail(email)
+    },
+
+    async reauthenticate ({ state }, { email, password }) {
+      const credential = firebase.auth.EmailAuthProvider.credential(email, password)
+      await firebase.auth().currentUser.reauthenticateWithCredential(credential)
+    },
+
     initAuthentication ({ dispatch, commit, state }) {
       if (state.authObserverUnsubscribe) state.authObserverUnsubscribe()
 
       return new Promise((resolve) => {
         const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-          console.log('👣 the user has changed')
           dispatch('unsubscribeAuthUserSnapshot')
 
           if (user) {
@@ -37,7 +46,25 @@ export default {
 
     async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
       const result = await firebase.auth().createUserWithEmailAndPassword(email, password)
+
+      avatar = await dispatch('uploadAvatar', { authId: result.user.uid, file: avatar })
       await dispatch('users/createUser', { id: result.user.uid, email, name, username, avatar }, { root: true })
+    },
+
+    async uploadAvatar ({ state }, { authId, file, filename }) {
+      if (!file) return null
+      authId = authId || state.authId
+      filename = filename || file.name
+
+      try {
+        const storageBucket = firebase.storage().ref().child(`uploads/${authId}/images/${Date.now()}-${filename}`)
+        const snapshot = await storageBucket.put(file)
+        const url = await snapshot.ref.getDownloadURL()
+        return url
+      } catch (error) {
+        const { addNotification } = useNotifications()
+        addNotification({ message: 'Error uploading avatar image', type: 'error' })
+      }
     },
 
     signInWithEmailAndPassword (context, { email, password }) {
@@ -75,8 +102,19 @@ export default {
       commit('setAuthId', userId)
     },
 
-    async fetchAuthUsersPosts ({ commit, state }) {
-      const posts = await firebase.firestore().collection('posts').where('userId', '==', state.authId).get()
+    async fetchAuthUsersPosts ({ commit, state }, { startAfter }) {
+      let query = await firebase.firestore().collection('posts')
+        .where('userId', '==', state.authId)
+        .orderBy('publishedAt', 'desc')
+        .limit(3)
+
+      if (startAfter) {
+        const doc = await firebase.firestore().collection('posts').doc(startAfter.id).get()
+        query = query.startAfter(doc)
+      }
+
+      const posts = await query.get()
+
       posts.forEach(item => {
         commit('setItem', { resource: 'posts', item }, { root: true })
       })

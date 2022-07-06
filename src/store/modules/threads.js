@@ -1,5 +1,6 @@
-import { findById, docToResource, makeAppendChildToParentMutation } from '@/helpers'
-import firebase from 'firebase/compat/app'
+import { findById, docToResource, makeAppendChildToParentMutation, makeFetchItemAction, makeFetchItemsAction } from '@/helpers'
+import firebase from '@/helpers/firebase'
+import chunk from 'lodash/chunk'
 
 export default {
   namespaced: true,
@@ -25,6 +26,7 @@ export default {
             return thread.posts.length - 1
           },
           get contributorsCount () {
+            if (!thread.contributors) return 0
             return thread.contributors.length
           }
         }
@@ -59,7 +61,7 @@ export default {
       commit('setItem', { resource: 'threads', item: { ...newThread.data(), id: newThread.id } }, { root: true })
       commit('users/appendThreadToUser', { parentId: userId, childId: threadRef.id }, { root: true })
       commit('forums/appendThreadToForum', { parentId: forumId, childId: threadRef.id }, { root: true })
-      await dispatch('posts/createPost', { text, threadId: threadRef.id }, { root: true })
+      await dispatch('posts/createPost', { text, threadId: threadRef.id, firstInThread: true }, { root: true })
 
       return findById(state.items, threadRef.id)
     },
@@ -89,13 +91,23 @@ export default {
       return docToResource(newThread)
     },
 
-    fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { emoji: '📃', resource: 'threads', id }, { root: true }),
-    fetchThreads: ({ dispatch }, { ids }) => dispatch('fetchItems', { resource: 'threads', ids, emoji: '📃' }, { root: true })
+    fetchThread: makeFetchItemAction({ emoji: '📄', resource: 'threads' }),
+    fetchThreads: makeFetchItemsAction({ emoji: '📄', resource: 'threads' }),
+    fetchThreadsByPage: ({ dispatch, commit }, { ids, page, perPage = 3 }) => {
+      commit('clearThreads')
+      const chunks = chunk(ids, perPage)
+      const limitedIds = chunks[page - 1]
+      return dispatch('fetchThreads', { ids: limitedIds })
+    }
 
   },
 
   mutations: {
     appendPostToThread: makeAppendChildToParentMutation({ parent: 'threads', child: 'posts' }),
-    appendContributorToThread: makeAppendChildToParentMutation({ parent: 'threads', child: 'contributors' })
+    appendContributorToThread: makeAppendChildToParentMutation({ parent: 'threads', child: 'contributors' }),
+
+    clearThreads (state) {
+      state.items = []
+    }
   }
 }

@@ -6,17 +6,23 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "db:seed" : "firebase firestore:delete --all-collections --yes && node ./firestoreImport.js"
+    "db:seed": "firebase firestore:delete --all-collections --yes && node ./firestoreImport.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/vue-fontawesome": "^3.0.1",
+    "@hennge/vue3-pagination": "^1.0.17",
+    "@vee-validate/i18n": "^4.5.11",
+    "@vee-validate/rules": "^4.5.11",
     "core-js": "^3.8.3",
     "dayjs": "^1.11.3",
     "firebase": "^9.8.4",
+    "lodash": "^4.17.21",
     "nprogress": "^0.2.0",
+    "vee-validate": "^4.5.11",
     "vue": "^3.2.13",
+    "vue-final-modal": "^3.4.4",
     "vue-router": "^4.0.16",
     "vuex": "^4.0.2"
   },

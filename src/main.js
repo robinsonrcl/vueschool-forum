@@ -3,15 +3,13 @@ import App from './App.vue'
 import router from '@/router'
 import store from '@/store'
 import FontAwesome from '@/plugins/FontAwesome'
-
-// import { initializeApp } from 'firebase/app'
-// import firebaseConfig from '@/config/firebase'
-// import firebase from '@/config/firebase'
-
 import firebase from '@/helpers/firebase'
 import firebaseConfig from '@/config/firebase'
+import ClickOutsideDirective from '@/plugins/ClickOutsideDirective'
+import PageScrollDirective from '@/plugins/PageScrollDirective'
+import Vue3Pagination from '@/plugins/Vue3Pagination'
+import VeeValidatePlugin from '@/plugins/VeeValidatePlugin'
 
-// const app = initializeApp(firebaseConfig)
 firebase.initializeApp(firebaseConfig)
 
 const forumApp = createApp(App)
@@ -19,6 +17,10 @@ const forumApp = createApp(App)
 forumApp.use(router)
 forumApp.use(store)
 forumApp.use(FontAwesome)
+forumApp.use(ClickOutsideDirective)
+forumApp.use(PageScrollDirective)
+forumApp.use(Vue3Pagination)
+forumApp.use(VeeValidatePlugin)
 
 const requireComponent = require.context('./components', true, /App[A-Z]\w+\.(vue|js)$/)
 

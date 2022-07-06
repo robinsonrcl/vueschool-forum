@@ -1,20 +1,24 @@
 <template>
 <TheNavbar />
   <div class="container">
-    <router-view v-show="showPage" @ready="onPageReady" :key="$route.path" />
+    <router-view v-show="showPage" @ready="onPageReady" :key="`${$route.path}${JSON.stringify($route.query)}`"/>
     <AppSpinner v-show="!showPage" />
+    <AppNotifications />
   </div>
 </template>
 
 <script>
-import TheNavbar from '@/components/TheNavbar.vue'
+import TheNavbar from '@/components/TheNavbar'
+import AppNotifications from '@/components/AppNotifications'
 import { mapActions } from 'vuex'
 import NProgress from 'nprogress'
 
 export default {
   name: 'App',
+
   components: {
-    TheNavbar
+    TheNavbar,
+    AppNotifications
   },
 
   data () {

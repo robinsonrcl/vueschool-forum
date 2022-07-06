@@ -7,10 +7,17 @@ export default {
 
   appendUnsubscribe (state, { unsubscribe }) {
     state.setAuthUserUnsubscribe = unsubscribe
+    // state.unsubscribes.push(unsubscribe)
   },
 
   clearAllUnsubscribes (state) {
     state.unsubscribes = []
+  },
+
+  clearItems (state, { modules = [] }) {
+    modules.forEach(module => {
+      state[module].items = []
+    })
   }
 
 }

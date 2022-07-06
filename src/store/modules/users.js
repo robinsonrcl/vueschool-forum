@@ -1,5 +1,5 @@
-import firebase from 'firebase/compat/app'
-import { docToResource, makeAppendChildToParentMutation, findById } from '@/helpers'
+import firebase from '@/helpers/firebase'
+import { docToResource, makeAppendChildToParentMutation, findById, makeFetchItemAction, makeFetchItemsAction } from '@/helpers'
 
 export default {
   namespaced: true,
@@ -23,6 +23,9 @@ export default {
           },
           get threads () {
             return rootState.threads.items.filter(post => post.userId === user.id)
+          },
+          get threadIds () {
+            return user.threads
           },
           get threadsCount () {
             return user.threads?.length || 0
@@ -65,8 +68,8 @@ export default {
       commit('setItem', { resource: 'users', item: user }, { root: true })
     },
 
-    fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { emoji: '🙋', resource: 'users', id }, { root: true }),
-    fetchUsers: ({ dispatch }, { ids }) => dispatch('fetchItems', { resource: 'users', ids, emoji: '🙋' }, { root: true })
+    fetchUser: makeFetchItemAction({ emoji: '🙋', resource: 'users' }),
+    fetchUsers: makeFetchItemsAction({ resource: 'users', emoji: '🙋' })
   },
 
   mutations: {
